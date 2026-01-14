@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+    content="RayRoPE: Projective Ray Positional Encoding for Multi-view Attention">
+  <meta name="keywords" content="positional encoding, multi-view transformer, 3D vision, RoPE">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RayRoPE: Projective Ray Positional Encoding for Multi-view Attention</title>
+  <link rel="icon" type="image/png" href="./assets/icon.png">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro|Caveat">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  
+  <style>
+    :root {
+      --primary-color: #3273dc;
+      --secondary-color: #c9a227;
+      --dark-gray: #555;
+      --light-gray: #666;
+    }
+
+    body {
+      font-family: 'Noto Sans', sans-serif;
+    }
+
+    .publication-title {
+      font-family: 'Google Sans', sans-serif;
+    }
+
+    .tldr-section {
+      padding: 2rem 0;
+    }
+
+    .tldr-card {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .tldr-pill {
+      background: var(--primary-color);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-right: 0.75rem;
+    }
+
+    .tldr-heading {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .tldr-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .tldr-list li {
+      padding: 0.5rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .tldr-list li:hover {
+      background-color: #f5f5f5;
+      border-radius: 4px;
+    }
+
+    .tldr-list li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--primary-color);
+    }
+
+    .section-subtitle {
+      color: var(--light-gray);
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .property-card {
+      background: white;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      text-align: center;
+      height: 100%;
+    }
+
+    .property-card h4 {
+      color: var(--primary-color);
+      margin-top: 0.5rem;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+      padding: 0.75rem 1rem;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+
+    .comparison-table th {
+      background: #a8d4f0;
+      color: #333;
+    }
+
+    .comparison-table tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+
+    .check-mark {
+      color: #22c55e;
+      font-size: 1.25rem;
+    }
+
+    .cross-mark {
+      color: #ef4444;
+      font-size: 1.25rem;
+    }
+
+    /* Image placeholder styles */
+    .image-placeholder {
+      background: linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 0.9rem;
+      min-height: 200px;
+    }
+
+    .image-placeholder.tall {
+      min-height: 400px;
+    }
+
+    .image-placeholder.medium {
+      min-height: 300px;
+    }
+
+    /* Video comparison slider */
+    .video-comparison-container {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #000;
+    }
+
+    .video-comparison-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+    }
+
+    .video-comparison-wrapper video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-left {
+      clip-path: inset(0 50% 0 0);
+    }
+
+    .video-right {
+      clip-path: inset(0 0 0 50%);
+    }
+
+    .comparison-slider {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 4px;
+      height: 100%;
+      background: white;
+      cursor: ew-resize;
+      z-index: 10;
+      transform: translateX(-50%);
+    }
+
+    .comparison-slider::before {
+      content: "⟨ ⟩";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 8px 4px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #333;
+      white-space: nowrap;
+    }
+
+    .video-label {
+      position: absolute;
+      bottom: 10px;
+      padding: 4px 12px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      z-index: 5;
+    }
+
+    .video-label.left {
+      left: 10px;
+    }
+
+    .video-label.right {
+      right: 10px;
+    }
+
+    .method-selector {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .method-selector button {
+      padding: 0.5rem 1rem;
+      border: 2px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .method-selector button:hover {
+      border-color: var(--primary-color);
+    }
+
+    .method-selector button.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    /* Scene selector / thumbnail scroll */
+    .scene-selector {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 1rem 0;
+      scroll-behavior: smooth;
+    }
+
+    .scene-selector .scene-thumb {
+      flex: 0 0 auto;
+      width: 100px;
+      height: 60px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      object-fit: cover;
+      transition: border-color 0.2s;
+    }
+
+    .scene-selector .scene-thumb:hover {
+      border-color: var(--primary-color);
+    }
+
+    .scene-selector .scene-thumb.active {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(50, 115, 220, 0.3);
+    }
+
+    /* Two-row figure grid */
+    .two-row-figure {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    .two-row-figure .figure-item {
+      text-align: center;
+    }
+
+    .two-row-figure .figure-item img,
+    .two-row-figure .figure-item .image-placeholder {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: contain;
+    }
+
+    .two-row-figure .figure-item p {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--light-gray);
+    }
+
+    /* Attention demo styles */
+    .attention-demo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+
+    .slider-group {
+      margin: 1rem 0;
+    }
+
+    .slider-group label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+
+    .slider-group input[type="range"] {
+      width: 100%;
+    }
+
+    .heatmap-placeholder {
+      width: 100%;
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, #3273dc22 0%, #c9a22722 100%);
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+    }
+
+    /* Depth comparison styles */
+    .depth-comparison {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .depth-item {
+      text-align: center;
+    }
+
+    .depth-item img,
+    .depth-item .image-placeholder {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .depth-item p {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--light-gray);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .two-row-figure {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .attention-demo {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Hero Section -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <div class="is-flex is-align-items-center is-justify-content-center" style="gap:0.75rem; margin-bottom:0.25rem;">
+            <img src="./assets/icon.png" alt="RayRoPE icon" style="height: 3.5rem;" />
+           
+            <h1 class="title is-1 publication-title" style="margin:0; letter-spacing: 0.02em;">
+              <span style="font-weight: 700;">RayRoPE</span>
+            </h1>
+          </div>
+          <h3 class="title is-3 publication-title">
+            <!-- <span style="color: #3273dc; font-weight: 700;">Geometric-Grounded Positional Encoding</span>
+            <span style="font-weight: 400; color: #666;">for</span>
+            <span style="color: #c9a227; font-style: italic; font-weight: 500;">Multi-View Transformers</span> -->
+            Projective  Ray Positional Encoding for Multi-view Attention
+        </h3>
+            
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><a href="#">Yu Wu</a><sup>1</sup>&nbsp;&nbsp;</span>
+            <span class="author-block"><a href="#">Minsik Jeon</a><sup>1</sup>&nbsp;&nbsp;</span>
+            <span class="author-block"><a href="#">Jen-Hao Rick Chang</a><sup>2</sup>&nbsp;&nbsp;</span>
+            <span class="author-block"><a href="#">Oncel Tuzel</a><sup>2</sup>&nbsp;&nbsp;</span>
+            <span class="author-block"><a href="#">Shubham Tulsiani</a><sup>1</sup>&nbsp;&nbsp;</span>
+          </div>
+
+          <div class="is-size-6 publication-authors">
+            <span class="author-block"><sup>1</sup> Carnegie Mellon University&nbsp;&nbsp;&nbsp;</span>
+            <span class="author-block"><sup>2</sup> Apple</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <span class="link-block">
+                <a href="#" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="#" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fab fa-github"></i></span>
+                  <span>Code</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 1: Problem -->
+<section class="section tldr-section" id="problem">
+  <div class="container is-max-desktop">
+    <div class="tldr-card">
+      <div class="tldr-heading">
+        <h2 class="title is-5" style="margin:0;">Problem: How should we design positional encoding for multi-view transformers?</h2>
+      </div>
+      
+      <div class="content has-text-justified" style="margin-bottom: 1.5rem;">
+        <p>
+          We live in a <strong>3D world</strong>, and the positional encoding of transformers should be <strong>3D-aware</strong> as well. 
+          In this project, we propose <span style="color: #3273dc; font-weight: 700;">RayRoPE</span>, a novel geometric-grounded 
+          positional encoding mechanism designed for multi-view attention.
+        </p>
+      </div>
+
+      <!-- Two-row figure: Row 1 shows 1D/2D/3D/Multi-view models, Row 2 shows corresponding RoPE variants -->
+      <div class="content has-text-centered">
+        <!-- Placeholder - remove when image is ready -->
+        <!-- <div class="image-placeholder" style="min-height: 300px; max-width: 100%; margin: 0 auto;">
+          <span>Figure: Two-row comparison (1D/2D/3D/Multi-view models → 1D/2D/3D RoPE + RayRoPE)</span>
+        </div> -->
+        
+        <img src="./assets/web-problem.png" alt="Two-row figure comparing different models and their positional encodings" style="width: 100%; border-radius: 8px;" />
+       
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 2: Properties -->
+<section class="section" id="properties">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">What makes a good positional encoding in 3D?</h2>
+    <div class="content has-text-justified" style="margin-bottom: 2rem;">
+      <p>
+        We argue that an ideal positional encoding in 3D should satisfy <strong>four desirable properties</strong> illustrated below:
+      </p>
+    </div>
+
+    <!-- Four desirable properties figure: (a) SE(3) Invariance, (b) Uniqueness, (c) Geometric Adaptiveness, (d) Multi-frequency Similarity -->
+    <div class="content has-text-centered" style="margin-bottom: 2rem;">
+      <!-- Placeholder - remove when image is ready -->
+      <!-- <div class="image-placeholder" style="min-height: 250px; max-width: 100%; margin: 0 auto;">
+        <span>Figure: Four desirable properties (a) SE(3) Invariance, (b) Uniqueness, (c) Geometric Adaptiveness, (d) Multi-frequency</span>
+      </div> -->
+      
+      <img src="./assets/four-properties.png" alt="Four desirable properties for 3D positional encoding" style="width: 100%; border-radius: 8px;" />
+     
+    </div>
+
+    <!-- Comparison table -->
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>SE(3) Invariance</th>
+          <th>Uniqueness</th>
+          <th>Geometric Adaptiveness</th>
+          <th>Multi-frequency</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Plücker Raymap</strong></td>
+          <td><span class="cross-mark">✗</span></td>
+          <td><span class="check-mark">✓</span></td>
+          <td><span class="cross-mark">✗</span></td>
+          <td><span class="cross-mark">✗</span></td>
+        </tr>
+        <tr>
+          <td><strong>PRoPE</strong></td>
+          <td><span class="check-mark">✓</span></td>
+          <td><span class="cross-mark">✗</span></td>
+          <td><span class="cross-mark">✗</span></td>
+          <td><span class="cross-mark">✗</span></td>
+        </tr>
+        <tr style="background: linear-gradient(90deg, #3273dc11 0%, #c9a22711 100%);">
+          <td><strong style="color: #3273dc;">RayRoPE (Ours)</strong></td>
+          <td><span class="check-mark">✓</span></td>
+          <td><span class="check-mark">✓</span></td>
+          <td><span class="check-mark">✓</span></td>
+          <td><span class="check-mark">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Section 3: Method - RoPE on Projected Rays -->
+<section class="section" id="method-rope">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">Method: RoPE on Projected Rays</h2>
+    <div class="content has-text-justified">
+      <p>
+        <strong>TBD:</strong> Detailed description of the RoPE on projected rays methodology will be added here. 
+        This section will explain how we project rays and apply rotary position embeddings to achieve 
+        geometric-grounded attention in multi-view transformers.
+      </p>
+    </div>
+    <div class="content has-text-centered">
+      <!-- Placeholder - remove when image is ready -->
+      <div class="image-placeholder tall" style="max-width: 800px; margin: 0 auto;">
+        <span>Method GIF: RoPE on Projected Rays Animation</span>
+      </div>
+      <!-- Uncomment when image/gif is ready:
+      <img src="./assets/images/method_rope.gif" alt="RoPE on Projected Rays Animation" style="max-width: 800px; width: 100%; border-radius: 8px;" />
+      -->
+    </div>
+  </div>
+</section>
+
+<!-- Section 4: Method - Depth Prediction -->
+<section class="section" id="method-depth">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">Method: Adapts to Scene Geometry via Depth Prediction</h2>
+    <div class="content has-text-justified">
+      <p>
+        <strong>TBD:</strong> Description of how RayRoPE adapts to scene geometry through depth prediction will be added here.
+        This includes how depth and uncertainty predictions are used to compute expected RoPE values.
+      </p>
+    </div>
+    <div class="content has-text-centered">
+      <!-- Placeholder - remove when image is ready -->
+      <div class="image-placeholder tall" style="max-width: 800px; margin: 0 auto;">
+        <span>GIF: Depth & Uncertainty Prediction, Expected RoPE</span>
+      </div>
+      <!-- Uncomment when image/gif is ready:
+      <img src="./assets/images/method_depth.gif" alt="Depth and Uncertainty Prediction Animation" style="max-width: 800px; width: 100%; border-radius: 8px;" />
+      -->
+    </div>
+  </div>
+</section>
+
+<!-- Section 5: (Optional) Applying RayRoPE to Attention -->
+<section class="section" id="attention-figure">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">Applying RayRoPE to Attention</h2>
+    <div class="content has-text-centered">
+      <!-- Placeholder - remove when image is ready -->
+      <!-- <div class="image-placeholder medium" style="max-width: 900px; margin: 0 auto;">
+        <span>Figure 3: RayRoPE Applied to Multi-View Attention</span>
+      </div> -->
+      
+      <img src="./assets/apply-attn.png" alt="RayRoPE Applied to Multi-View Attention" style="max-width: 900px; width: 100%; border-radius: 8px;" />
+     
+    </div>
+  </div>
+</section>
+
+<!-- Section 6: (Optional) Interactive Attention Demo -->
+<section class="section" id="attention-demo">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">Interactive Attention Similarity Demo</h2>
+    <div class="content has-text-justified">
+      <p>
+        Explore how attention similarity changes with camera transformations. The query camera is fixed at identity,
+        and you can control the key camera's position and rotation using the sliders below.
+      </p>
+    </div>
+    
+    <div class="attention-demo">
+      <!-- Left: 3D Camera Visualization -->
+      <div>
+        <h5 class="title is-6">Camera Positions (3D View)</h5>
+        <!-- Placeholder - remove when visualization is ready -->
+        <div class="image-placeholder" style="aspect-ratio: 1; min-height: 300px;">
+          <span>3D Visualization: Query & Key Cameras</span>
+        </div>
+        <!-- Uncomment when visualization is ready:
+        <canvas id="camera-canvas" style="width: 100%; aspect-ratio: 1; border-radius: 8px;"></canvas>
+        -->
+        
+        <div class="slider-group">
+          <label>Translation X: <span id="tx-value">0</span></label>
+          <input type="range" id="slider-tx" min="-5" max="5" value="0" step="0.1">
+        </div>
+        <div class="slider-group">
+          <label>Translation Y: <span id="ty-value">0</span></label>
+          <input type="range" id="slider-ty" min="-5" max="5" value="0" step="0.1">
+        </div>
+        <div class="slider-group">
+          <label>Translation Z: <span id="tz-value">0</span></label>
+          <input type="range" id="slider-tz" min="-5" max="5" value="0" step="0.1">
+        </div>
+        <div class="slider-group">
+          <label>Rotation (Yaw): <span id="rot-value">0</span>°</label>
+          <input type="range" id="slider-rot" min="-180" max="180" value="0" step="1">
+        </div>
+      </div>
+      
+      <!-- Right: Attention Heatmap -->
+      <div>
+        <h5 class="title is-6">Attention Similarity Heatmap (Key View)</h5>
+        <!-- Placeholder - remove when visualization is ready -->
+        <div class="heatmap-placeholder">
+          <span>Attention Heatmap Visualization</span>
+        </div>
+        <!-- Uncomment when visualization is ready:
+        <canvas id="heatmap-canvas" style="width: 100%; aspect-ratio: 1; border-radius: 8px;"></canvas>
+        -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 7: Novel View Synthesis Comparison -->
+<section class="section" id="nvs-comparison">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">RayRoPE Improves Novel View Synthesis</h2>
+    <p class="subtitle is-5 section-subtitle">Visual Comparison: LVSM</p>
+    
+    <div class="content has-text-justified">
+      <p>
+        Compare different positional encoding methods for novel view synthesis. 
+        Drag the slider to compare results, and use the buttons below to switch between methods.
+      </p>
+    </div>
+
+    <!-- Method selectors -->
+    <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem;">
+      <div>
+        <p class="has-text-centered is-size-7" style="margin-bottom: 0.5rem;"><strong>Left Video:</strong></p>
+        <div class="method-selector" id="left-method-selector">
+          <button data-method="gt">Ground Truth</button>
+          <button data-method="plucker">Plücker</button>
+          <button data-method="gta">GTA</button>
+          <button data-method="prope" class="active">PRoPE</button>
+          <button data-method="rayrope">RayRoPE</button>
+        </div>
+      </div>
+      <div>
+        <p class="has-text-centered is-size-7" style="margin-bottom: 0.5rem;"><strong>Right Video:</strong></p>
+        <div class="method-selector" id="right-method-selector">
+          <button data-method="gt">Ground Truth</button>
+          <button data-method="plucker">Plücker</button>
+          <button data-method="gta">GTA</button>
+          <button data-method="prope">PRoPE</button>
+          <button data-method="rayrope" class="active">RayRoPE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video comparison slider -->
+    <div class="video-comparison-container" id="nvs-video-container">
+      <div class="video-comparison-wrapper">
+        <video class="video-left" id="video-left" autoplay muted loop playsinline>
+          <source src="./assets/videos/scene1_prope.mp4" type="video/mp4">
+        </video>
+        <video class="video-right" id="video-right" autoplay muted loop playsinline>
+          <source src="./assets/videos/scene1_rayrope.mp4" type="video/mp4">
+        </video>
+        <div class="comparison-slider" id="comparison-slider"></div>
+        <div class="video-label left" id="label-left">PRoPE</div>
+        <div class="video-label right" id="label-right">RayRoPE</div>
+      </div>
+    </div>
+
+    <!-- Scene selector -->
+    <p class="has-text-centered is-size-7" style="margin-top: 1rem; margin-bottom: 0.5rem;"><strong>Select Scene:</strong></p>
+    <div class="scene-selector" id="scene-selector">
+      <!-- Placeholders - replace with actual thumbnail images when ready -->
+      <div class="image-placeholder scene-thumb active" data-scene="scene1" style="min-height: auto;">1</div>
+      <div class="image-placeholder scene-thumb" data-scene="scene2" style="min-height: auto;">2</div>
+      <div class="image-placeholder scene-thumb" data-scene="scene3" style="min-height: auto;">3</div>
+      <div class="image-placeholder scene-thumb" data-scene="scene4" style="min-height: auto;">4</div>
+      <div class="image-placeholder scene-thumb" data-scene="scene5" style="min-height: auto;">5</div>
+      <div class="image-placeholder scene-thumb" data-scene="scene6" style="min-height: auto;">6</div>
+      <div class="image-placeholder scene-thumb" data-scene="scene7" style="min-height: auto;">7</div>
+      <div class="image-placeholder scene-thumb" data-scene="scene8" style="min-height: auto;">8</div>
+      <!-- Uncomment and replace placeholders above when thumbnails are ready:
+      <img class="scene-thumb active" data-scene="scene1" src="./assets/thumbnails/scene1.png" alt="Scene 1" />
+      <img class="scene-thumb" data-scene="scene2" src="./assets/thumbnails/scene2.png" alt="Scene 2" />
+      <img class="scene-thumb" data-scene="scene3" src="./assets/thumbnails/scene3.png" alt="Scene 3" />
+      <img class="scene-thumb" data-scene="scene4" src="./assets/thumbnails/scene4.png" alt="Scene 4" />
+      <img class="scene-thumb" data-scene="scene5" src="./assets/thumbnails/scene5.png" alt="Scene 5" />
+      <img class="scene-thumb" data-scene="scene6" src="./assets/thumbnails/scene6.png" alt="Scene 6" />
+      <img class="scene-thumb" data-scene="scene7" src="./assets/thumbnails/scene7.png" alt="Scene 7" />
+      <img class="scene-thumb" data-scene="scene8" src="./assets/thumbnails/scene8.png" alt="Scene 8" />
+      -->
+    </div>
+  </div>
+</section>
+
+<!-- Section 8: Stereo Depth Estimation -->
+<section class="section" id="depth-estimation">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">RayRoPE Improves Stereo Depth Estimation</h2>
+    <div class="content has-text-justified">
+      <p>
+        Visual comparison of stereo depth estimation results. RayRoPE provides more accurate depth predictions
+        by leveraging geometric-grounded positional encodings.
+      </p>
+    </div>
+
+    <!-- Stereo depth comparison figure -->
+    <div class="content has-text-centered">
+      <!-- Placeholder - remove when image is ready -->
+      <div class="image-placeholder" style="min-height: 300px; max-width: 100%; margin: 0 auto;">
+        <span>Figure: Stereo Depth Estimation Comparison (Input, Ground Truth, Baseline, RayRoPE)</span>
+      </div>
+      <!-- Uncomment when image is ready:
+      <img src="./assets/images/depth_comparison.png" alt="Stereo Depth Estimation Comparison" style="width: 100%; border-radius: 8px;" />
+      -->
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer" style="padding: 1.5rem 0;">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content has-text-centered">
+          <p style="margin: 0.2rem 0;">
+            This webpage template is adapted from 
+            <a href="https://github.com/nerfies/nerfies.github.io" target="_blank" rel="noreferrer">Nerfies</a> 
+            under a <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer">CC BY-SA 4.0</a> License.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // ========== Smooth Scroll ==========
+  function smoothScroll(element) {
+    const target = element.getAttribute('data-target');
+    const targetElement = document.querySelector(target);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // Make tldr list items clickable
+  document.querySelectorAll('.tldr-list li[data-target]').forEach(item => {
+    item.addEventListener('click', () => smoothScroll(item));
+  });
+
+  // ========== Slider Demo Values ==========
+  const sliders = ['tx', 'ty', 'tz', 'rot'];
+  sliders.forEach(id => {
+    const slider = document.getElementById(`slider-${id}`);
+    const valueSpan = document.getElementById(`${id}-value`);
+    if (slider && valueSpan) {
+      slider.addEventListener('input', () => {
+        valueSpan.textContent = slider.value;
+      });
+    }
+  });
+
+  // ========== Video Comparison Slider ==========
+  const container = document.getElementById('nvs-video-container');
+  const slider = document.getElementById('comparison-slider');
+  const videoLeft = document.getElementById('video-left');
+  const videoRight = document.getElementById('video-right');
+  
+  let isDragging = false;
+
+  function updateSliderPosition(clientX) {
+    const rect = container.getBoundingClientRect();
+    let x = clientX - rect.left;
+    x = Math.max(0, Math.min(x, rect.width));
+    const percent = (x / rect.width) * 100;
+    
+    slider.style.left = `${percent}%`;
+    videoLeft.style.clipPath = `inset(0 ${100 - percent}% 0 0)`;
+    videoRight.style.clipPath = `inset(0 0 0 ${percent}%)`;
+  }
+
+  slider.addEventListener('mousedown', () => { isDragging = true; });
+  document.addEventListener('mouseup', () => { isDragging = false; });
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      updateSliderPosition(e.clientX);
+    }
+  });
+
+  // Touch support
+  slider.addEventListener('touchstart', () => { isDragging = true; });
+  document.addEventListener('touchend', () => { isDragging = false; });
+  document.addEventListener('touchmove', (e) => {
+    if (isDragging && e.touches.length > 0) {
+      updateSliderPosition(e.touches[0].clientX);
+    }
+  });
+
+  // Sync videos
+  videoLeft.addEventListener('play', () => {
+    videoRight.currentTime = videoLeft.currentTime;
+    videoRight.play();
+  });
+  videoLeft.addEventListener('pause', () => videoRight.pause());
+  videoLeft.addEventListener('seeked', () => {
+    videoRight.currentTime = videoLeft.currentTime;
+  });
+
+  // ========== Method Selectors ==========
+  const methodNames = {
+    'gt': 'Ground Truth',
+    'plucker': 'Plücker',
+    'gta': 'GTA',
+    'prope': 'PRoPE',
+    'rayrope': 'RayRoPE'
+  };
+
+  let currentScene = 'scene1';
+  let leftMethod = 'prope';
+  let rightMethod = 'rayrope';
+
+  function updateVideos() {
+    // Update video sources based on current selections
+    // Format: ./assets/videos/{scene}_{method}.mp4
+    const leftSrc = `./assets/videos/${currentScene}_${leftMethod}.mp4`;
+    const rightSrc = `./assets/videos/${currentScene}_${rightMethod}.mp4`;
+    
+    videoLeft.src = leftSrc;
+    videoRight.src = rightSrc;
+    
+    // Update labels
+    document.getElementById('label-left').textContent = methodNames[leftMethod];
+    document.getElementById('label-right').textContent = methodNames[rightMethod];
+
+    // Sync and play
+    videoLeft.load();
+    videoRight.load();
+    
+    Promise.all([
+      videoLeft.play().catch(() => {}),
+      videoRight.play().catch(() => {})
+    ]);
+  }
+
+  // Left method selector
+  document.querySelectorAll('#left-method-selector button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#left-method-selector button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      leftMethod = btn.dataset.method;
+      updateVideos();
+    });
+  });
+
+  // Right method selector
+  document.querySelectorAll('#right-method-selector button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#right-method-selector button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      rightMethod = btn.dataset.method;
+      updateVideos();
+    });
+  });
+
+  // Scene selector
+  document.querySelectorAll('#scene-selector .scene-thumb').forEach(thumb => {
+    thumb.addEventListener('click', () => {
+      document.querySelectorAll('#scene-selector .scene-thumb').forEach(t => t.classList.remove('active'));
+      thumb.classList.add('active');
+      currentScene = thumb.dataset.scene;
+      updateVideos();
+    });
+  });
+});
+</script>
+
+</body>
+</html>

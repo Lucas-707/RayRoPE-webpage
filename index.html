@@ -408,7 +408,7 @@
             <span style="color: #c9a227; font-style: italic; font-weight: 500;">Multi-View Transformers</span> -->
             Projective  Ray Positional Encoding for Multi-view Attention
         </h3>
-            
+
           <div class="is-size-5 publication-authors">
             <span class="author-block"><a href="#">Yu Wu</a><sup>1</sup>&nbsp;&nbsp;</span>
             <span class="author-block"><a href="#">Minsik Jeon</a><sup>1</sup>&nbsp;&nbsp;</span>
@@ -445,31 +445,27 @@
 </section>
 
 <!-- Section 1: Problem -->
-<section class="section tldr-section" id="problem">
+<section class="section" id="problem">
   <div class="container is-max-desktop">
-    <div class="tldr-card">
-      <div class="tldr-heading">
-        <h2 class="title is-5" style="margin:0;">Problem: How should we design positional encoding for multi-view transformers?</h2>
-      </div>
-      
-      <div class="content has-text-justified" style="margin-bottom: 1.5rem;">
-        <p>
-          We live in a <strong>3D world</strong>, and the positional encoding of transformers should be <strong>3D-aware</strong> as well. 
-          In this project, we propose <span style="color: #3273dc; font-weight: 700;">RayRoPE</span>, a novel geometric-grounded 
-          positional encoding mechanism designed for multi-view attention.
-        </p>
-      </div>
+    <h2 class="title is-4">Problem: How should we design positional encoding for multi-view transformers?</h2>
+    
+    <div class="content has-text-justified" style="margin-bottom: 1.5rem;">
+      <p>
+        We live in a <strong>3D world</strong>, and the positional encoding of transformers should be <strong>3D-aware</strong> as well. 
+        In this project, we propose <span style="color: #3273dc; font-weight: 700;">RayRoPE</span>, a novel geometric-grounded 
+        positional encoding mechanism designed for multi-view attention.
+      </p>
+    </div>
 
-      <!-- Two-row figure: Row 1 shows 1D/2D/3D/Multi-view models, Row 2 shows corresponding RoPE variants -->
-      <div class="content has-text-centered">
-        <!-- Placeholder - remove when image is ready -->
-        <!-- <div class="image-placeholder" style="min-height: 300px; max-width: 100%; margin: 0 auto;">
-          <span>Figure: Two-row comparison (1D/2D/3D/Multi-view models → 1D/2D/3D RoPE + RayRoPE)</span>
-        </div> -->
-        
-        <img src="./assets/web-problem.png" alt="Two-row figure comparing different models and their positional encodings" style="width: 100%; border-radius: 8px;" />
-       
-      </div>
+    <!-- Two-row figure: Row 1 shows 1D/2D/3D/Multi-view models, Row 2 shows corresponding RoPE variants -->
+    <div class="content has-text-centered">
+      <!-- Placeholder - remove when image is ready -->
+      <!-- <div class="image-placeholder" style="min-height: 300px; max-width: 100%; margin: 0 auto;">
+        <span>Figure: Two-row comparison (1D/2D/3D/Multi-view models → 1D/2D/3D RoPE + RayRoPE)</span>
+      </div> -->
+      
+      <img src="./assets/web-problem.png" alt="Two-row figure comparing different models and their positional encodings" style="width: 100%; border-radius: 8px;" />
+     
     </div>
   </div>
 </section>
@@ -584,11 +580,11 @@
     <h2 class="title is-4">Applying RayRoPE to Attention</h2>
     <div class="content has-text-centered">
       <!-- Placeholder - remove when image is ready -->
-      <!-- <div class="image-placeholder medium" style="max-width: 900px; margin: 0 auto;">
+      <!-- <div class="image-placeholder medium" style="max-width: 600px; margin: 0 auto;">
         <span>Figure 3: RayRoPE Applied to Multi-View Attention</span>
       </div> -->
       
-      <img src="./assets/apply-attn.png" alt="RayRoPE Applied to Multi-View Attention" style="max-width: 900px; width: 100%; border-radius: 8px;" />
+      <img src="./assets/apply-attn.png" alt="RayRoPE Applied to Multi-View Attention" style="max-width: 600px; width: 100%; border-radius: 8px;" />
      
     </div>
   </div>

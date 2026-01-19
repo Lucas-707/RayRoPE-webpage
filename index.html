@@ -7,12 +7,13 @@
   <meta name="keywords" content="positional encoding, multi-view transformer, 3D vision, RoPE">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>RayRoPE: Projective Ray Positional Encoding for Multi-view Attention</title>
-  <link rel="icon" type="image/png" href="./assets/icon.png">
+  <link rel="icon" type="image/png" href="./assets/rayrope_logo.png">
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro|Caveat">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <script src="https://cdn.plot.ly/plotly-3.3.0.min.js"></script>
   
   <style>
     :root {
@@ -59,10 +60,13 @@
 
     .tldr-list {
       list-style: none;
+      list-style-type: none;
       padding-left: 0;
+      margin-left: 0;
     }
 
     .tldr-list li {
+      list-style: none;
       padding: 0.5rem 0;
       padding-left: 1.5rem;
       position: relative;
@@ -76,10 +80,32 @@
     }
 
     .tldr-list li::before {
-      content: "→";
+      content: "•";
       position: absolute;
       left: 0;
       color: var(--primary-color);
+      font-size: 1.2rem;
+      line-height: 1;
+      animation: wave-blink 2s ease-in-out infinite;
+    }
+
+    @keyframes wave-blink {
+      0%, 100% { 
+        opacity: 0.4;
+        transform: scale(1);
+      }
+      25% { 
+        opacity: 1;
+        transform: scale(1.2);
+      }
+      50% { 
+        opacity: 0.6;
+        transform: scale(1.1);
+      }
+      75% { 
+        opacity: 1;
+        transform: scale(1.3);
+      }
     }
 
     .section-subtitle {
@@ -159,7 +185,7 @@
     .video-comparison-container {
       position: relative;
       width: 100%;
-      max-width: 900px;
+      max-width: 400px;
       margin: 0 auto;
       overflow: hidden;
       border-radius: 8px;
@@ -169,7 +195,7 @@
     .video-comparison-wrapper {
       position: relative;
       width: 100%;
-      aspect-ratio: 16/9;
+      aspect-ratio: 1/1;
     }
 
     .video-comparison-wrapper video {
@@ -264,30 +290,56 @@
     /* Scene selector / thumbnail scroll */
     .scene-selector {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.75rem;
       overflow-x: auto;
-      padding: 1rem 0;
+      padding: 1.5rem 0;
       scroll-behavior: smooth;
+      scrollbar-width: thin;
     }
 
-    .scene-selector .scene-thumb {
+    .scene-selector::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .scene-selector::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .scene-selector::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 10px;
+    }
+
+    .scene-item {
       flex: 0 0 auto;
-      width: 100px;
-      height: 60px;
-      border-radius: 4px;
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 8px;
       cursor: pointer;
       border: 2px solid transparent;
+      transition: all 0.3s;
+      background: white;
+    }
+
+    .scene-item:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 2px 8px rgba(50, 115, 220, 0.2);
+    }
+
+    .scene-item.active {
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 12px rgba(50, 115, 220, 0.3);
+      background: rgba(50, 115, 220, 0.05);
+    }
+
+    .scene-item .ref-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 4px;
       object-fit: cover;
-      transition: border-color 0.2s;
-    }
-
-    .scene-selector .scene-thumb:hover {
-      border-color: var(--primary-color);
-    }
-
-    .scene-selector .scene-thumb.active {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px rgba(50, 115, 220, 0.3);
+      border: 1px solid #ddd;
     }
 
     /* Two-row figure grid */
@@ -374,6 +426,125 @@
       color: var(--light-gray);
     }
 
+    /* Stereo point cloud grid */
+    .stereo-pointcloud-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .stereo-pointcloud-item {
+      text-align: center;
+    }
+
+    .stereo-pointcloud-item .pointcloud-container {
+      width: 100%;
+      height: 280px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: #fafafa;
+    }
+
+    .stereo-pointcloud-item p {
+      margin-top: 0.25rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--dark-gray);
+    }
+
+    @media (max-width: 768px) {
+      .stereo-pointcloud-grid {
+        grid-template-columns: 1fr;
+      }
+      .stereo-pointcloud-item .pointcloud-container {
+        height: 240px;
+      }
+    }
+
+    /* Custom video player controls */
+    .custom-video-container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .custom-video-container video {
+      width: 100%;
+      border-radius: 8px;
+      display: block;
+    }
+
+    .video-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      margin-top: 8px;
+    }
+
+    .play-pause-btn {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .play-pause-btn:hover {
+      color: var(--primary-color);
+    }
+
+    .progress-container {
+      flex: 1;
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--primary-color);
+      border-radius: 2px;
+      width: 0%;
+      position: relative;
+      pointer-events: none;
+    }
+
+    .progress-bar::after {
+      content: '';
+      position: absolute;
+      right: -5px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      background: var(--primary-color);
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .progress-container:hover .progress-bar::after,
+    .progress-container.dragging .progress-bar::after {
+      opacity: 1;
+    }
+
+    .time-display {
+      color: #888;
+      font-size: 0.75rem;
+      font-family: monospace;
+      min-width: 80px;
+      text-align: right;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .two-row-figure {
@@ -396,10 +567,10 @@
       <div class="columns is-centered">
         <div class="column has-text-centered">
           <div class="is-flex is-align-items-center is-justify-content-center" style="gap:0.75rem; margin-bottom:0.25rem;">
-            <img src="./assets/icon.png" alt="RayRoPE icon" style="height: 3.5rem;" />
+            <img src="./assets/rayrope_logo.png" alt="RayRoPE icon" style="height: 3.5rem;" />
            
             <h1 class="title is-1 publication-title" style="margin:0; letter-spacing: 0.02em;">
-              <span style="font-weight: 700;">RayRoPE</span>
+              <img src="./assets/rayrope_title.png" alt="RayRoPE" style="height: 3.5rem; margin-top: 1.2rem;" />
             </h1>
           </div>
           <h3 class="title is-3 publication-title">
@@ -529,63 +700,235 @@
   </div>
 </section>
 
-<!-- Section 3: Method - RoPE on Projected Rays -->
+<!-- Section 3: Method-->
 <section class="section" id="method-rope">
   <div class="container is-max-desktop">
-    <h2 class="title is-4">Method: RoPE on Projected Rays</h2>
+    <h2 class="title is-4">Methods: RayRoPE Encodings</h2>
     <div class="content has-text-justified">
-      <p>
-        <strong>TBD:</strong> Detailed description of the RoPE on projected rays methodology will be added here. 
-        This section will explain how we project rays and apply rotary position embeddings to achieve 
-        geometric-grounded attention in multi-view transformers.
-      </p>
     </div>
     <div class="content has-text-centered">
-      <!-- Placeholder - remove when image is ready -->
-      <div class="image-placeholder tall" style="max-width: 800px; margin: 0 auto;">
-        <span>Method GIF: RoPE on Projected Rays Animation</span>
+      <div class="custom-video-container">
+        <video id="method-video" autoplay muted playsinline>
+          <source src="./assets/method_animation.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <div class="video-controls">
+          <button class="play-pause-btn" id="play-pause-btn">
+            <i class="fas fa-pause"></i>
+          </button>
+          <div class="progress-container" id="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+          <span class="time-display" id="time-display">0:00 / 0:00</span>
+        </div>
       </div>
-      <!-- Uncomment when image/gif is ready:
-      <img src="./assets/images/method_rope.gif" alt="RoPE on Projected Rays Animation" style="max-width: 800px; width: 100%; border-radius: 8px;" />
-      -->
     </div>
-  </div>
-</section>
-
-<!-- Section 4: Method - Depth Prediction -->
-<section class="section" id="method-depth">
-  <div class="container is-max-desktop">
-    <h2 class="title is-4">Method: Adapts to Scene Geometry via Depth Prediction</h2>
-    <div class="content has-text-justified">
-      <p>
-        <strong>TBD:</strong> Description of how RayRoPE adapts to scene geometry through depth prediction will be added here.
-        This includes how depth and uncertainty predictions are used to compute expected RoPE values.
-      </p>
-    </div>
-    <div class="content has-text-centered">
-      <!-- Placeholder - remove when image is ready -->
-      <div class="image-placeholder tall" style="max-width: 800px; margin: 0 auto;">
-        <span>GIF: Depth & Uncertainty Prediction, Expected RoPE</span>
-      </div>
-      <!-- Uncomment when image/gif is ready:
-      <img src="./assets/images/method_depth.gif" alt="Depth and Uncertainty Prediction Animation" style="max-width: 800px; width: 100%; border-radius: 8px;" />
-      -->
+    
+    <!-- Key Insights -->
+    <div class="content has-text-justified" style="margin-top: 2rem;">
+      <ul class="tldr-list">
+        <li><strong style="color: var(--primary-color);">Insight 1:</strong>
+          Depth predictions help the positional encoding to adapt to the scene geometry.
+        <li><strong style="color: var(--primary-color);">Insight 2:</strong> 
+          Projecting rays into query camera's frame ensure independence from world coordinates.
+        <li><strong style="color: var(--primary-color);">Insight 3:</strong> 
+          Modeling uncertainties in depth via expected RoPE produces more stable encodings.
+        </ul>
     </div>
   </div>
 </section>
 
 <!-- Section 5: (Optional) Applying RayRoPE to Attention -->
-<section class="section" id="attention-figure">
+<!-- <section class="section" id="attention-figure">
   <div class="container is-max-desktop">
     <h2 class="title is-4">Applying RayRoPE to Attention</h2>
-    <div class="content has-text-centered">
-      <!-- Placeholder - remove when image is ready -->
-      <!-- <div class="image-placeholder medium" style="max-width: 600px; margin: 0 auto;">
-        <span>Figure 3: RayRoPE Applied to Multi-View Attention</span>
-      </div> -->
-      
+    <div class="content has-text-centered">      
       <img src="./assets/apply-attn.png" alt="RayRoPE Applied to Multi-View Attention" style="max-width: 600px; width: 100%; border-radius: 8px;" />
-     
+    </div>
+  </div>
+</section> -->
+
+
+
+<!-- Section 7: Novel View Synthesis Comparison -->
+<section class="section" id="nvs-comparison">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">RayRoPE Improves Novel View Synthesis</h2>
+    
+    <div class="content has-text-justified">
+      <p>
+        We train the LVSM model with different positional encodings and compare their results below. 
+      </p>
+    </div>
+
+    <!-- Method selectors -->
+    <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem;">
+      <div>
+        <p class="has-text-centered is-size-7" style="margin-bottom: 0.5rem;"><strong>Left Video:</strong></p>
+        <div class="method-selector" id="left-method-selector">
+          <button data-method="gt">Ground Truth</button>
+          <button data-method="plucker">Plücker</button>
+          <button data-method="gta">GTA</button>
+          <button data-method="prope" class="active">PRoPE</button>
+          <button data-method="rayrope">RayRoPE</button>
+        </div>
+      </div>
+      <div>
+        <p class="has-text-centered is-size-7" style="margin-bottom: 0.5rem;"><strong>Right Video:</strong></p>
+        <div class="method-selector" id="right-method-selector">
+          <button data-method="gt">Ground Truth</button>
+          <button data-method="plucker">Plücker</button>
+          <button data-method="gta">GTA</button>
+          <button data-method="prope">PRoPE</button>
+          <button data-method="rayrope" class="active">RayRoPE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video comparison slider -->
+    <div class="video-comparison-container" id="nvs-video-container">
+      <div class="video-comparison-wrapper">
+        <video class="video-left" id="video-left" autoplay muted loop playsinline>
+          <source src="./assets/nvs-visual/co3d_seen_0_PRoPE_pred.mp4" type="video/mp4">
+        </video>
+        <video class="video-right" id="video-right" autoplay muted loop playsinline>
+          <source src="./assets/nvs-visual/co3d_seen_0_RayRoPE_pred.mp4" type="video/mp4">
+        </video>
+        <div class="comparison-slider" id="comparison-slider"></div>
+        <div class="video-label left" id="label-left">PRoPE</div>
+        <div class="video-label right" id="label-right">RayRoPE</div>
+      </div>
+    </div>
+
+    <!-- Scene selector -->
+    <p class="has-text-centered is-size-7" style="margin-top: 1rem; margin-bottom: 0.5rem;"><strong>Select Scene (Reference Views):</strong></p>
+    <div class="scene-selector" id="scene-selector">
+      <!-- Scene 0 -->
+      <div class="scene-item active" data-scene="0" data-dataset="co3d_seen">
+        <img src="./assets/nvs-visual/co3d_seen_0_ref0.png" alt="Scene 0 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_0_ref1.png" alt="Scene 0 Ref 1" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_0_ref2.png" alt="Scene 0 Ref 2" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_0_ref3.png" alt="Scene 0 Ref 3" class="ref-image">
+      </div>
+      <!-- Scene 1 -->
+      <div class="scene-item" data-scene="1" data-dataset="co3d_seen">
+        <img src="./assets/nvs-visual/co3d_seen_1_ref0.png" alt="Scene 1 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_1_ref1.png" alt="Scene 1 Ref 1" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_1_ref2.png" alt="Scene 1 Ref 2" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_1_ref3.png" alt="Scene 1 Ref 3" class="ref-image">
+      </div>
+      <!-- Scene 2 -->
+      <div class="scene-item" data-scene="2" data-dataset="co3d_seen">
+        <img src="./assets/nvs-visual/co3d_seen_2_ref0.png" alt="Scene 2 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_2_ref1.png" alt="Scene 2 Ref 1" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_2_ref2.png" alt="Scene 2 Ref 2" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_2_ref3.png" alt="Scene 2 Ref 3" class="ref-image">
+      </div>
+      <!-- Scene 3 -->
+      <div class="scene-item" data-scene="3" data-dataset="co3d_seen">
+        <img src="./assets/nvs-visual/co3d_seen_3_ref0.png" alt="Scene 3 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_3_ref1.png" alt="Scene 3 Ref 1" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_3_ref2.png" alt="Scene 3 Ref 2" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_3_ref3.png" alt="Scene 3 Ref 3" class="ref-image">
+      </div>
+      <!-- Scene 4 -->
+      <div class="scene-item" data-scene="4" data-dataset="co3d_seen">
+        <img src="./assets/nvs-visual/co3d_seen_4_ref0.png" alt="Scene 4 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_4_ref1.png" alt="Scene 4 Ref 1" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_4_ref2.png" alt="Scene 4 Ref 2" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_4_ref3.png" alt="Scene 4 Ref 3" class="ref-image">
+      </div>
+      <!-- Scene 5 -->
+      <div class="scene-item" data-scene="5" data-dataset="co3d_seen">
+        <img src="./assets/nvs-visual/co3d_seen_5_ref0.png" alt="Scene 5 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_5_ref1.png" alt="Scene 5 Ref 1" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_5_ref2.png" alt="Scene 5 Ref 2" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_5_ref3.png" alt="Scene 5 Ref 3" class="ref-image">
+      </div>
+      <!-- Scene 6 -->
+      <div class="scene-item" data-scene="6" data-dataset="co3d_seen">
+        <img src="./assets/nvs-visual/co3d_seen_6_ref0.png" alt="Scene 6 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_6_ref1.png" alt="Scene 6 Ref 1" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_6_ref2.png" alt="Scene 6 Ref 2" class="ref-image">
+        <img src="./assets/nvs-visual/co3d_seen_6_ref3.png" alt="Scene 6 Ref 3" class="ref-image">
+      </div>
+      <!-- re10k Scene 0 -->
+      <div class="scene-item" data-scene="0" data-dataset="re10k">
+        <img src="./assets/nvs-visual/re10k_0_ref0.png" alt="re10k 0 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/re10k_0_ref1.png" alt="re10k 0 Ref 1" class="ref-image">
+      </div>
+      <!-- re10k Scene 1 -->
+      <div class="scene-item" data-scene="1" data-dataset="re10k">
+        <img src="./assets/nvs-visual/re10k_1_ref0.png" alt="re10k 1 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/re10k_1_ref1.png" alt="re10k 1 Ref 1" class="ref-image">
+      </div>
+      <!-- re10k Scene 2 -->
+      <div class="scene-item" data-scene="2" data-dataset="re10k">
+        <img src="./assets/nvs-visual/re10k_2_ref0.png" alt="re10k 2 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/re10k_2_ref1.png" alt="re10k 2 Ref 1" class="ref-image">
+      </div>
+      <!-- re10k Scene 3 -->
+      <div class="scene-item" data-scene="3" data-dataset="re10k">
+        <img src="./assets/nvs-visual/re10k_3_ref0.png" alt="re10k 3 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/re10k_3_ref1.png" alt="re10k 3 Ref 1" class="ref-image">
+      </div>
+      <!-- re10k Scene 4 -->
+      <div class="scene-item" data-scene="4" data-dataset="re10k">
+        <img src="./assets/nvs-visual/re10k_4_ref0.png" alt="re10k 4 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/re10k_4_ref1.png" alt="re10k 4 Ref 1" class="ref-image">
+      </div>
+      <!-- re10k Scene 5 -->
+      <div class="scene-item" data-scene="5" data-dataset="re10k">
+        <img src="./assets/nvs-visual/re10k_5_ref0.png" alt="re10k 5 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/re10k_5_ref1.png" alt="re10k 5 Ref 1" class="ref-image">
+      </div>
+      <!-- re10k Scene 6 -->
+      <div class="scene-item" data-scene="6" data-dataset="re10k">
+        <img src="./assets/nvs-visual/re10k_6_ref0.png" alt="re10k 6 Ref 0" class="ref-image">
+        <img src="./assets/nvs-visual/re10k_6_ref1.png" alt="re10k 6 Ref 1" class="ref-image">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 8: Stereo Depth Estimation -->
+<section class="section" id="depth-estimation">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">RayRoPE Improves Stereo Depth Estimation</h2>
+    <div class="content has-text-justified">
+      <p>
+        We evaluate the stereo depth estimation performance with the Unimatch model. The 3D point clouds below show the predicted depth for each method:
+      </p>
+    </div>
+
+    <!-- Scene selector for stereo depth -->
+    <p class="has-text-centered is-size-7" style="margin-bottom: 0.5rem;"><strong>Select Scene:</strong></p>
+    <div class="method-selector" id="stereo-scene-selector" style="margin-bottom: 1.5rem;">
+      <button data-scene="0001" class="active">Scene 0001</button>
+      <!-- <button data-scene="0006">Scene 0006</button> -->
+      <button data-scene="0048">Scene 0048</button>
+      <button data-scene="0071">Scene 0071</button>
+      <button data-scene="0150">Scene 0150</button>
+    </div>
+
+    <!-- Point cloud visualization grid -->
+    <div class="stereo-pointcloud-grid">
+      <div class="stereo-pointcloud-item">
+        <div id="pointcloud-gt" class="pointcloud-container"></div>
+        <p>Ground Truth</p>
+      </div>
+      <div class="stereo-pointcloud-item">
+        <div id="pointcloud-unimatch" class="pointcloud-container"></div>
+        <p>UniMatch</p>
+      </div>
+      <div class="stereo-pointcloud-item">
+        <div id="pointcloud-prope" class="pointcloud-container"></div>
+        <p>PRoPE</p>
+      </div>
+      <div class="stereo-pointcloud-item">
+        <div id="pointcloud-rayrope" class="pointcloud-container"></div>
+        <p>RayRoPE (Ours)</p>
+      </div>
     </div>
   </div>
 </section>
@@ -642,108 +985,6 @@
         <canvas id="heatmap-canvas" style="width: 100%; aspect-ratio: 1; border-radius: 8px;"></canvas>
         -->
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- Section 7: Novel View Synthesis Comparison -->
-<section class="section" id="nvs-comparison">
-  <div class="container is-max-desktop">
-    <h2 class="title is-4">RayRoPE Improves Novel View Synthesis</h2>
-    <p class="subtitle is-5 section-subtitle">Visual Comparison: LVSM</p>
-    
-    <div class="content has-text-justified">
-      <p>
-        Compare different positional encoding methods for novel view synthesis. 
-        Drag the slider to compare results, and use the buttons below to switch between methods.
-      </p>
-    </div>
-
-    <!-- Method selectors -->
-    <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 1rem;">
-      <div>
-        <p class="has-text-centered is-size-7" style="margin-bottom: 0.5rem;"><strong>Left Video:</strong></p>
-        <div class="method-selector" id="left-method-selector">
-          <button data-method="gt">Ground Truth</button>
-          <button data-method="plucker">Plücker</button>
-          <button data-method="gta">GTA</button>
-          <button data-method="prope" class="active">PRoPE</button>
-          <button data-method="rayrope">RayRoPE</button>
-        </div>
-      </div>
-      <div>
-        <p class="has-text-centered is-size-7" style="margin-bottom: 0.5rem;"><strong>Right Video:</strong></p>
-        <div class="method-selector" id="right-method-selector">
-          <button data-method="gt">Ground Truth</button>
-          <button data-method="plucker">Plücker</button>
-          <button data-method="gta">GTA</button>
-          <button data-method="prope">PRoPE</button>
-          <button data-method="rayrope" class="active">RayRoPE</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Video comparison slider -->
-    <div class="video-comparison-container" id="nvs-video-container">
-      <div class="video-comparison-wrapper">
-        <video class="video-left" id="video-left" autoplay muted loop playsinline>
-          <source src="./assets/videos/scene1_prope.mp4" type="video/mp4">
-        </video>
-        <video class="video-right" id="video-right" autoplay muted loop playsinline>
-          <source src="./assets/videos/scene1_rayrope.mp4" type="video/mp4">
-        </video>
-        <div class="comparison-slider" id="comparison-slider"></div>
-        <div class="video-label left" id="label-left">PRoPE</div>
-        <div class="video-label right" id="label-right">RayRoPE</div>
-      </div>
-    </div>
-
-    <!-- Scene selector -->
-    <p class="has-text-centered is-size-7" style="margin-top: 1rem; margin-bottom: 0.5rem;"><strong>Select Scene:</strong></p>
-    <div class="scene-selector" id="scene-selector">
-      <!-- Placeholders - replace with actual thumbnail images when ready -->
-      <div class="image-placeholder scene-thumb active" data-scene="scene1" style="min-height: auto;">1</div>
-      <div class="image-placeholder scene-thumb" data-scene="scene2" style="min-height: auto;">2</div>
-      <div class="image-placeholder scene-thumb" data-scene="scene3" style="min-height: auto;">3</div>
-      <div class="image-placeholder scene-thumb" data-scene="scene4" style="min-height: auto;">4</div>
-      <div class="image-placeholder scene-thumb" data-scene="scene5" style="min-height: auto;">5</div>
-      <div class="image-placeholder scene-thumb" data-scene="scene6" style="min-height: auto;">6</div>
-      <div class="image-placeholder scene-thumb" data-scene="scene7" style="min-height: auto;">7</div>
-      <div class="image-placeholder scene-thumb" data-scene="scene8" style="min-height: auto;">8</div>
-      <!-- Uncomment and replace placeholders above when thumbnails are ready:
-      <img class="scene-thumb active" data-scene="scene1" src="./assets/thumbnails/scene1.png" alt="Scene 1" />
-      <img class="scene-thumb" data-scene="scene2" src="./assets/thumbnails/scene2.png" alt="Scene 2" />
-      <img class="scene-thumb" data-scene="scene3" src="./assets/thumbnails/scene3.png" alt="Scene 3" />
-      <img class="scene-thumb" data-scene="scene4" src="./assets/thumbnails/scene4.png" alt="Scene 4" />
-      <img class="scene-thumb" data-scene="scene5" src="./assets/thumbnails/scene5.png" alt="Scene 5" />
-      <img class="scene-thumb" data-scene="scene6" src="./assets/thumbnails/scene6.png" alt="Scene 6" />
-      <img class="scene-thumb" data-scene="scene7" src="./assets/thumbnails/scene7.png" alt="Scene 7" />
-      <img class="scene-thumb" data-scene="scene8" src="./assets/thumbnails/scene8.png" alt="Scene 8" />
-      -->
-    </div>
-  </div>
-</section>
-
-<!-- Section 8: Stereo Depth Estimation -->
-<section class="section" id="depth-estimation">
-  <div class="container is-max-desktop">
-    <h2 class="title is-4">RayRoPE Improves Stereo Depth Estimation</h2>
-    <div class="content has-text-justified">
-      <p>
-        Visual comparison of stereo depth estimation results. RayRoPE provides more accurate depth predictions
-        by leveraging geometric-grounded positional encodings.
-      </p>
-    </div>
-
-    <!-- Stereo depth comparison figure -->
-    <div class="content has-text-centered">
-      <!-- Placeholder - remove when image is ready -->
-      <div class="image-placeholder" style="min-height: 300px; max-width: 100%; margin: 0 auto;">
-        <span>Figure: Stereo Depth Estimation Comparison (Input, Ground Truth, Baseline, RayRoPE)</span>
-      </div>
-      <!-- Uncomment when image is ready:
-      <img src="./assets/images/depth_comparison.png" alt="Stereo Depth Estimation Comparison" style="width: 100%; border-radius: 8px;" />
-      -->
     </div>
   </div>
 </section>
@@ -848,15 +1089,24 @@ document.addEventListener('DOMContentLoaded', function() {
     'rayrope': 'RayRoPE'
   };
 
-  let currentScene = 'scene1';
+  const methodFileNames = {
+    'gt': 'gt',
+    'plucker': 'Plucker_pred',
+    'gta': 'GTA_pred',
+    'prope': 'PRoPE_pred',
+    'rayrope': 'RayRoPE_pred'
+  };
+
+  let currentScene = '0';
+  let currentDataset = 'co3d_seen';
   let leftMethod = 'prope';
   let rightMethod = 'rayrope';
 
   function updateVideos() {
     // Update video sources based on current selections
-    // Format: ./assets/videos/{scene}_{method}.mp4
-    const leftSrc = `./assets/videos/${currentScene}_${leftMethod}.mp4`;
-    const rightSrc = `./assets/videos/${currentScene}_${rightMethod}.mp4`;
+    // Format: ./assets/nvs-visual/{dataset}_{scene}_{method}.mp4
+    const leftSrc = `./assets/nvs-visual/${currentDataset}_${currentScene}_${methodFileNames[leftMethod]}.mp4`;
+    const rightSrc = `./assets/nvs-visual/${currentDataset}_${currentScene}_${methodFileNames[rightMethod]}.mp4`;
     
     videoLeft.src = leftSrc;
     videoRight.src = rightSrc;
@@ -896,14 +1146,316 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Scene selector
-  document.querySelectorAll('#scene-selector .scene-thumb').forEach(thumb => {
-    thumb.addEventListener('click', () => {
-      document.querySelectorAll('#scene-selector .scene-thumb').forEach(t => t.classList.remove('active'));
-      thumb.classList.add('active');
-      currentScene = thumb.dataset.scene;
+  document.querySelectorAll('#scene-selector .scene-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('#scene-selector .scene-item').forEach(t => t.classList.remove('active'));
+      item.classList.add('active');
+      currentScene = item.dataset.scene;
+      currentDataset = item.dataset.dataset;
       updateVideos();
     });
   });
+});
+</script>
+
+<!-- Custom Video Player Controls -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const video = document.getElementById('method-video');
+  const playPauseBtn = document.getElementById('play-pause-btn');
+  const progressContainer = document.getElementById('progress-container');
+  const progressBar = document.getElementById('progress-bar');
+  const timeDisplay = document.getElementById('time-display');
+
+  if (!video || !playPauseBtn || !progressContainer || !progressBar || !timeDisplay) return;
+
+  // Format time as M:SS
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  // Update play/pause button icon
+  function updatePlayPauseIcon() {
+    const icon = playPauseBtn.querySelector('i');
+    if (video.paused) {
+      icon.classList.remove('fa-pause');
+      icon.classList.add('fa-play');
+    } else {
+      icon.classList.remove('fa-play');
+      icon.classList.add('fa-pause');
+    }
+  }
+
+  // Update progress bar and time display
+  function updateProgress() {
+    if (video.duration) {
+      const percent = (video.currentTime / video.duration) * 100;
+      progressBar.style.width = percent + '%';
+      timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+    }
+  }
+
+  // Play/Pause toggle
+  playPauseBtn.addEventListener('click', function() {
+    if (video.paused) {
+      video.play();
+    } else {
+      video.pause();
+    }
+  });
+
+  // Drag to seek
+  let isDragging = false;
+
+  function seek(e) {
+    if (!video.duration) return;
+    const rect = progressContainer.getBoundingClientRect();
+    let percent = (e.clientX - rect.left) / rect.width;
+    percent = Math.max(0, Math.min(1, percent));
+    video.currentTime = percent * video.duration;
+    updateProgress();
+  }
+
+  progressContainer.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    isDragging = true;
+    progressContainer.classList.add('dragging');
+    seek(e);
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (isDragging) {
+      e.preventDefault();
+      seek(e);
+    }
+  });
+
+  document.addEventListener('mouseup', function() {
+    if (isDragging) {
+      isDragging = false;
+      progressContainer.classList.remove('dragging');
+    }
+  });
+
+  // Also handle touch events for mobile
+  progressContainer.addEventListener('touchstart', function(e) {
+    isDragging = true;
+    progressContainer.classList.add('dragging');
+    const touch = e.touches[0];
+    seekTouch(touch);
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function(e) {
+    if (isDragging) {
+      const touch = e.touches[0];
+      seekTouch(touch);
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', function() {
+    if (isDragging) {
+      isDragging = false;
+      progressContainer.classList.remove('dragging');
+    }
+  });
+
+  function seekTouch(touch) {
+    if (!video.duration) return;
+    const rect = progressContainer.getBoundingClientRect();
+    let percent = (touch.clientX - rect.left) / rect.width;
+    percent = Math.max(0, Math.min(1, percent));
+    video.currentTime = percent * video.duration;
+    updateProgress();
+  }
+
+  // Event listeners for video
+  video.addEventListener('timeupdate', updateProgress);
+  video.addEventListener('play', updatePlayPauseIcon);
+  video.addEventListener('pause', updatePlayPauseIcon);
+  video.addEventListener('loadedmetadata', function() {
+    timeDisplay.textContent = `${formatTime(0)} / ${formatTime(video.duration)}`;
+  });
+
+  // Initialize
+  updatePlayPauseIcon();
+});
+</script>
+
+<!-- Stereo Point Cloud Visualization Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const stereoScenes = ['0001', '0006', '0048', '0071', '0150'];
+  const stereoMethods = ['pred_gt', 'unimatch', 'prope', 'rayrope'];
+  const methodContainerIds = {
+    'pred_gt': 'pointcloud-gt',
+    'unimatch': 'pointcloud-unimatch',
+    'prope': 'pointcloud-prope',
+    'rayrope': 'pointcloud-rayrope'
+  };
+  
+  let currentStereoScene = '0001';
+
+  // Common layout for all point clouds
+  const commonLayout = {
+    autosize: true,
+    margin: { l: 0, r: 0, t: 0, b: 0 },
+    scene: {
+      aspectmode: 'data',
+      xaxis: { visible: false },
+      yaxis: { visible: false },
+      zaxis: { visible: false },
+      camera: {
+        eye: { x: 0, y: 0, z: -2 }
+      }
+    },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)'
+  };
+
+  const commonConfig = {
+    responsive: true,
+    displayModeBar: false
+  };
+
+  function decodeBdata(field) {
+    if (!field || typeof field !== 'object' || !field.bdata || !field.dtype) return field;
+    const binary = atob(field.bdata);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    const buffer = bytes.buffer;
+    switch (field.dtype) {
+      case 'f4':
+        return new Float32Array(buffer);
+      case 'f8':
+        return new Float64Array(buffer);
+      case 'i4':
+        return new Int32Array(buffer);
+      case 'u1':
+        return new Uint8Array(buffer);
+      default:
+        return field;
+    }
+  }
+
+  // Function to load and display a point cloud
+  async function loadPointCloud(scene, method) {
+    const containerId = methodContainerIds[method];
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const jsonPath = `./assets/stereo/${scene}_3d_pointcloud_${method}.json`;
+    
+    try {
+      container.innerHTML = '';
+      const response = await fetch(jsonPath);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const plotData = await response.json();
+
+      if (plotData.data && Array.isArray(plotData.data)) {
+        plotData.data = plotData.data.map((trace) => {
+          const updated = { ...trace };
+          updated.x = decodeBdata(trace.x);
+          updated.y = decodeBdata(trace.y);
+          updated.z = decodeBdata(trace.z);
+          if (updated.marker && typeof updated.marker === 'object') {
+            updated.marker = { ...updated.marker, size: 1 };
+          }
+          updated.hoverinfo = 'skip';
+          updated.hovertemplate = '';
+          updated.showlegend = false;
+          return updated;
+        });
+      }
+      
+      if (!window.Plotly) {
+        throw new Error('Plotly not loaded');
+      }
+
+      // Use the data from JSON but apply our common layout
+      await Plotly.newPlot(containerId, plotData.data, {
+        autosize: true,
+        margin: { l: 0, r: 0, t: 0, b: 0 },
+        scene: {
+          aspectmode: 'data',
+          xaxis: { visible: false },
+          yaxis: { visible: false },
+          zaxis: { visible: false },
+          camera: {
+            eye: { x: 1., y: 1.4, z: 0.1}
+          }
+        },
+        hovermode: false,
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)'
+      }, commonConfig);
+    } catch (error) {
+      console.error(`Error loading point cloud ${scene} ${method}:`, error);
+      container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;">Failed to load</div>`;
+    }
+  }
+
+  // Function to load all point clouds for a scene
+  async function loadAllPointClouds(scene) {
+    // Show loading state
+    stereoMethods.forEach(method => {
+      const container = document.getElementById(methodContainerIds[method]);
+      if (container) {
+        container.__cameraSyncBound = false;
+        container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;">Loading...</div>`;
+      }
+    });
+
+    // Load all point clouds in parallel
+    await Promise.all(stereoMethods.map(method => loadPointCloud(scene, method)));
+    wireCameraSync();
+  }
+
+  function wireCameraSync() {
+    const containerIds = stereoMethods.map(method => methodContainerIds[method]);
+    containerIds.forEach((sourceId) => {
+      const sourceEl = document.getElementById(sourceId);
+      if (!sourceEl) return;
+      if (sourceEl.__cameraSyncBound) return;
+      sourceEl.__cameraSyncBound = true;
+
+      const syncCamera = (eventData) => {
+        if (!eventData || !eventData['scene.camera']) return;
+        if (sourceEl.__isSyncing) return;
+        const camera = eventData['scene.camera'];
+        containerIds.forEach((targetId) => {
+          if (targetId === sourceId) return;
+          const targetEl = document.getElementById(targetId);
+          if (!targetEl) return;
+          targetEl.__isSyncing = true;
+          Plotly.relayout(targetId, { 'scene.camera': camera }).finally(() => {
+            targetEl.__isSyncing = false;
+          });
+        });
+      };
+
+      sourceEl.on('plotly_relayouting', syncCamera);
+      sourceEl.on('plotly_relayout', syncCamera);
+    });
+  }
+
+  // Scene selector event listeners
+  document.querySelectorAll('#stereo-scene-selector button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#stereo-scene-selector button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentStereoScene = btn.dataset.scene;
+      loadAllPointClouds(currentStereoScene);
+    });
+  });
+
+  // Initial load
+  loadAllPointClouds(currentStereoScene);
 });
 </script>
 

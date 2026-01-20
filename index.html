@@ -42,6 +42,47 @@
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     }
 
+    .abstract-block {
+      background: white;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      border: 1px solid #eee;
+    }
+
+    .abstract-summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.25rem;
+      color: var(--primary-color);
+      list-style: none;
+      outline: none;
+      text-align: center;
+    }
+
+    .abstract-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .abstract-summary::after {
+      content: '▸';
+      margin-left: 0.5rem;
+      transition: transform 0.2s ease;
+      display: inline-block;
+    }
+
+    details[open] .abstract-summary::after {
+      transform: rotate(90deg);
+    }
+
+    .abstract-content {
+      margin-top: 0.75rem;
+      color: var(--light-gray);
+      line-height: 1.6;
+      text-align: justify;
+      text-justify: inter-word;
+    }
+
     .tldr-pill {
       background: var(--primary-color);
       color: white;
@@ -615,6 +656,34 @@
   </div>
 </section>
 
+<!-- Abstract Section -->
+<section class="section" id="abstract">
+  <div class="container is-max-desktop">
+    <details class="abstract-block">
+      <summary class="abstract-summary">Abstract</summary>
+      <div class="abstract-content">
+        <p>
+          <!-- TODO: Replace with the paper abstract. -->
+        We study positional encodings for multi-view transformers that process tokens from a set of posed input images, 
+        and seek a mechanism that encodes patches uniquely, allows SE(3)-invariant attention with multi-frequency similarity, 
+        and can be adaptive to the geometry of the underlying scene. 
+        We find that prior (absolute or relative) encoding schemes for multi-view attention do not meet the above desiderata, 
+        and present RayRoPE to address this gap. RayRoPE represents patch positions based on associated rays 
+        but leverages a predicted point along the ray instead of the direction for a geometry-aware encoding. 
+        To achieve SE(3) invariance, RayRoPE computes query-frame projective coordinates for computing multi-frequency similarity. 
+        Lastly, as the `predicted' 3D point along a ray may not be precise, 
+        RayRoPE presents a mechanism to analytically compute the expected position encoding under uncertainty. 
+        We validate RayRoPE on the tasks of novel-view synthesis and stereo depth estimation and 
+        show that it consistently improves over alternate position encoding schemes 
+        (e.g. 15% relative improvement on LPIPS in Co3D). 
+        We also show that RayRoPE can seamlessly incorporate RGB-D input, 
+        resulting in even larger gains over alternatives that cannot positionally encode this information.           
+        </p>
+      </div>
+    </details>
+  </div>
+</section>
+
 <!-- Section 1: Problem -->
 <section class="section" id="problem">
   <div class="container is-max-desktop">
@@ -686,7 +755,7 @@
           <td><span class="check-mark">✓</span></td>
           <td><span class="cross-mark">✗</span></td>
           <td><span class="cross-mark">✗</span></td>
-          <td><span class="cross-mark">✗</span></td>
+          <td><span class="cross-mark">✗</span> (only for patch indices)</td>
         </tr>
         <tr style="background: linear-gradient(90deg, #3273dc11 0%, #c9a22711 100%);">
           <td><strong style="color: #3273dc;">RayRoPE (Ours)</strong></td>
@@ -706,10 +775,14 @@
     <h2 class="title is-4">Methods: RayRoPE Encodings</h2>
     <div class="content has-text-justified">
     </div>
+  </div>
+  
+  <!-- Video container outside max-desktop to be wider -->
+  <div class="container is-max-widescreen">
     <div class="content has-text-centered">
       <div class="custom-video-container">
-        <video id="method-video" autoplay muted playsinline>
-          <source src="./assets/method_animation.mp4" type="video/mp4">
+        <video id="method-video" autoplay muted playsinline preload="metadata" data-src="./assets/method_animation_copy.mp4">
+          <source type="video/mp4">
           Your browser does not support the video tag.
         </video>
         <div class="video-controls">
@@ -723,7 +796,9 @@
         </div>
       </div>
     </div>
-    
+  </div>
+  
+  <div class="container is-max-desktop">
     <!-- Key Insights -->
     <div class="content has-text-justified" style="margin-top: 2rem;">
       <ul class="tldr-list">
@@ -788,11 +863,11 @@
     <!-- Video comparison slider -->
     <div class="video-comparison-container" id="nvs-video-container">
       <div class="video-comparison-wrapper">
-        <video class="video-left" id="video-left" autoplay muted loop playsinline>
-          <source src="./assets/nvs-visual/co3d_seen_0_PRoPE_pred.mp4" type="video/mp4">
+        <video class="video-left" id="video-left" autoplay muted loop playsinline preload="metadata">
+          <source type="video/mp4">
         </video>
-        <video class="video-right" id="video-right" autoplay muted loop playsinline>
-          <source src="./assets/nvs-visual/co3d_seen_0_RayRoPE_pred.mp4" type="video/mp4">
+        <video class="video-right" id="video-right" autoplay muted loop playsinline preload="metadata">
+          <source type="video/mp4">
         </video>
         <div class="comparison-slider" id="comparison-slider"></div>
         <div class="video-label left" id="label-left">PRoPE</div>
@@ -901,16 +976,6 @@
       </p>
     </div>
 
-    <!-- Scene selector for stereo depth -->
-    <p class="has-text-centered is-size-7" style="margin-bottom: 0.5rem;"><strong>Select Scene:</strong></p>
-    <div class="method-selector" id="stereo-scene-selector" style="margin-bottom: 1.5rem;">
-      <button data-scene="0001" class="active">Scene 0001</button>
-      <!-- <button data-scene="0006">Scene 0006</button> -->
-      <button data-scene="0048">Scene 0048</button>
-      <button data-scene="0071">Scene 0071</button>
-      <button data-scene="0150">Scene 0150</button>
-    </div>
-
     <!-- Point cloud visualization grid -->
     <div class="stereo-pointcloud-grid">
       <div class="stereo-pointcloud-item">
@@ -928,6 +993,69 @@
       <div class="stereo-pointcloud-item">
         <div id="pointcloud-rayrope" class="pointcloud-container"></div>
         <p>RayRoPE (Ours)</p>
+      </div>
+    </div>
+
+    <!-- Scene selector for stereo depth (below visuals) -->
+    <p class="has-text-centered is-size-7" style="margin-top: 1rem; margin-bottom: 0.5rem;"><strong>Select Scene (Input Views):</strong></p>
+    <div class="scene-selector" id="stereo-scene-selector">
+      <div class="scene-item active" data-scene="0001">
+        <img src="./assets/stereo/inputs/ref_0001.png" alt="Scene 0001 Ref" class="ref-image">
+        <img src="./assets/stereo/inputs/tgt_0001.png" alt="Scene 0001 Target" class="ref-image">
+      </div>
+      <div class="scene-item" data-scene="0048">
+        <img src="./assets/stereo/inputs/ref_0048.png" alt="Scene 0048 Ref" class="ref-image">
+        <img src="./assets/stereo/inputs/tgt_0048.png" alt="Scene 0048 Target" class="ref-image">
+      </div>
+      <div class="scene-item" data-scene="0071">
+        <img src="./assets/stereo/inputs/ref_0071.png" alt="Scene 0071 Ref" class="ref-image">
+        <img src="./assets/stereo/inputs/tgt_0071.png" alt="Scene 0071 Target" class="ref-image">
+      </div>
+      <div class="scene-item" data-scene="0150">
+        <img src="./assets/stereo/inputs/ref_0150.png" alt="Scene 0150 Ref" class="ref-image">
+        <img src="./assets/stereo/inputs/tgt_0150.png" alt="Scene 0150 Target" class="ref-image">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 9: Emergent Depth -->
+<section class="section" id="emergent-depth">
+  <div class="container is-max-desktop">
+    <h2 class="title is-4">Emergent Depth</h2>
+    <div class="content has-text-justified">
+      <p>
+        Our RayRoPE positional encoding enables models to learn depth understanding implicitly. 
+        The visualizations below demonstrate how depth information emerges naturally during training,
+        showing comparisons between input views and predicted depth maps across different scenes.
+      </p>
+    </div>
+
+    <!-- Depth visualization container -->
+    <div class="content has-text-centered" style="margin-top: 2rem; margin-bottom: 1rem;">
+      <div style="max-width: 1000px; margin: 0 auto;">
+        <img id="depth-pred-view" src="./assets/depth_visual_final/101_11750_20715_v0.png" alt="Emergent Depth Visualization" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
+        <p style="margin-top: 0.5rem; font-weight: 600;">Emergent Depth Visualization</p>
+      </div>
+    </div>
+
+    <!-- Scene selector for emergent depth (below visuals) -->
+    <p class="has-text-centered is-size-7" style="margin-top: 1rem; margin-bottom: 0.5rem;"><strong>Select Scene (Input Views):</strong></p>
+    <div class="scene-selector" id="emergent-depth-scene-selector">
+      <div class="scene-item active" data-scene="101_11750_20715_v0">
+        <img src="./assets/depth_visual_final/101_11750_20715_v0_input.png" alt="Scene 101" class="ref-image">
+      </div>
+      <div class="scene-item" data-scene="106_12662_23043_v0">
+        <img src="./assets/depth_visual_final/106_12662_23043_v0_input.png" alt="Scene 106" class="ref-image">
+      </div>
+      <div class="scene-item" data-scene="108_12854_22710_v0">
+        <img src="./assets/depth_visual_final/108_12854_22710_v0_input.png" alt="Scene 108" class="ref-image">
+      </div>
+      <div class="scene-item" data-scene="109_12949_23115_v0">
+        <img src="./assets/depth_visual_final/109_12949_23115_v0_input.png" alt="Scene 109" class="ref-image">
+      </div>
+      <div class="scene-item" data-scene="110_13051_23361_v0">
+        <img src="./assets/depth_visual_final/110_13051_23361_v0_input.png" alt="Scene 110" class="ref-image">
       </div>
     </div>
   </div>
@@ -1101,8 +1229,10 @@ document.addEventListener('DOMContentLoaded', function() {
   let currentDataset = 'co3d_seen';
   let leftMethod = 'prope';
   let rightMethod = 'rayrope';
+  let nvsEnabled = false;
 
   function updateVideos() {
+    if (!nvsEnabled) return;
     // Update video sources based on current selections
     // Format: ./assets/nvs-visual/{dataset}_{scene}_{method}.mp4
     const leftSrc = `./assets/nvs-visual/${currentDataset}_${currentScene}_${methodFileNames[leftMethod]}.mp4`;
@@ -1123,6 +1253,12 @@ document.addEventListener('DOMContentLoaded', function() {
       videoLeft.play().catch(() => {}),
       videoRight.play().catch(() => {})
     ]);
+  }
+
+  function enableNvsVideos() {
+    if (nvsEnabled) return;
+    nvsEnabled = true;
+    updateVideos();
   }
 
   // Left method selector
@@ -1155,6 +1291,21 @@ document.addEventListener('DOMContentLoaded', function() {
       updateVideos();
     });
   });
+
+  const nvsContainer = document.getElementById('nvs-video-container');
+  if (nvsContainer && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          enableNvsVideos();
+          observer.disconnect();
+        }
+      });
+    }, { rootMargin: '200px 0px' });
+    observer.observe(nvsContainer);
+  } else {
+    enableNvsVideos();
+  }
 });
 </script>
 
@@ -1278,8 +1429,30 @@ document.addEventListener('DOMContentLoaded', function() {
     timeDisplay.textContent = `${formatTime(0)} / ${formatTime(video.duration)}`;
   });
 
+  function ensureMethodVideoLoaded() {
+    const dataSrc = video.getAttribute('data-src');
+    if (dataSrc && !video.getAttribute('src')) {
+      video.setAttribute('src', dataSrc);
+      video.load();
+    }
+  }
+
   // Initialize
   updatePlayPauseIcon();
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          ensureMethodVideoLoaded();
+          observer.disconnect();
+        }
+      });
+    }, { rootMargin: '200px 0px' });
+    observer.observe(video);
+  } else {
+    ensureMethodVideoLoaded();
+  }
 });
 </script>
 
@@ -1387,7 +1560,7 @@ document.addEventListener('DOMContentLoaded', function() {
           yaxis: { visible: false },
           zaxis: { visible: false },
           camera: {
-            eye: { x: 1., y: 1.4, z: 0.1}
+            eye: { x: 0.8, y: 1.12, z: 0.08}
           }
         },
         hovermode: false,
@@ -1445,17 +1618,61 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Scene selector event listeners
-  document.querySelectorAll('#stereo-scene-selector button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#stereo-scene-selector button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentStereoScene = btn.dataset.scene;
+  document.querySelectorAll('#stereo-scene-selector .scene-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('#stereo-scene-selector .scene-item').forEach(t => t.classList.remove('active'));
+      item.classList.add('active');
+      currentStereoScene = item.dataset.scene;
       loadAllPointClouds(currentStereoScene);
     });
   });
 
-  // Initial load
-  loadAllPointClouds(currentStereoScene);
+  function initStereoWhenVisible() {
+    if ('IntersectionObserver' in window) {
+      const section = document.getElementById('depth-estimation');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            loadAllPointClouds(currentStereoScene);
+            observer.disconnect();
+          }
+        });
+      }, { rootMargin: '200px 0px' });
+      if (section) observer.observe(section);
+    } else {
+      loadAllPointClouds(currentStereoScene);
+    }
+  }
+
+  // Initial load (lazy)
+  initStereoWhenVisible();
+});
+
+// ========== Emergent Depth Scene Selection ==========
+document.addEventListener('DOMContentLoaded', function() {
+  const depthPredImg = document.getElementById('depth-pred-view');
+  const emergentDepthSceneSelector = document.getElementById('emergent-depth-scene-selector');
+
+  if (!emergentDepthSceneSelector) return;
+
+  // Scene selector event listeners for emergent depth
+  document.querySelectorAll('#emergent-depth-scene-selector .scene-item').forEach(item => {
+    item.addEventListener('click', () => {
+      // Remove active class from all items
+      document.querySelectorAll('#emergent-depth-scene-selector .scene-item').forEach(t => t.classList.remove('active'));
+      
+      // Add active class to clicked item
+      item.classList.add('active');
+      
+      // Get the scene identifier
+      const sceneId = item.dataset.scene;
+      
+      // Update depth visualization image
+      if (depthPredImg) {
+        depthPredImg.src = `./assets/depth_visual_final/${sceneId}.png`;
+      }
+    });
+  });
 });
 </script>
 

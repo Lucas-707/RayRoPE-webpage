@@ -336,6 +336,13 @@
       padding: 1.5rem 0;
       scroll-behavior: smooth;
       scrollbar-width: thin;
+      justify-content: flex-start;
+    }
+
+    .scene-selector::before,
+    .scene-selector::after {
+      content: '';
+      flex: 1;
     }
 
     .scene-selector::-webkit-scrollbar {
@@ -489,7 +496,7 @@
 
     .stereo-pointcloud-item p {
       margin-top: 0.25rem;
-      font-size: 0.85rem;
+      font-size: 1rem;
       font-weight: 500;
       color: var(--dark-gray);
     }
@@ -637,7 +644,7 @@
           <div class="column has-text-centered">
             <div class="publication-links">
               <span class="link-block">
-                <a href="#" class="external-link button is-normal is-rounded is-dark">
+                <a href="https://arxiv.org/abs/2601.15275v1" class="external-link button is-normal is-rounded is-dark">
                   <span class="icon"><i class="fas fa-file-pdf"></i></span>
                   <span>Paper</span>
                 </a>
@@ -671,7 +678,7 @@
         and present RayRoPE to address this gap. RayRoPE represents patch positions based on associated rays 
         but leverages a predicted point along the ray instead of the direction for a geometry-aware encoding. 
         To achieve SE(3) invariance, RayRoPE computes query-frame projective coordinates for computing multi-frequency similarity. 
-        Lastly, as the `predicted' 3D point along a ray may not be precise, 
+        Lastly, as the 'predicted' 3D point along a ray may not be precise, 
         RayRoPE presents a mechanism to analytically compute the expected position encoding under uncertainty. 
         We validate RayRoPE on the tasks of novel-view synthesis and stereo depth estimation and 
         show that it consistently improves over alternate position encoding schemes 
@@ -692,7 +699,7 @@
     <div class="content has-text-justified" style="margin-bottom: 1.5rem;">
       <p>
         We live in a <strong>3D world</strong>, and the positional encoding of transformers should be <strong>3D-aware</strong> as well. 
-        In this project, we propose <span style="color: #3273dc; font-weight: 700;">RayRoPE</span>, a novel geometric-grounded 
+        In this project, we propose <span style="color: #3273dc; font-weight: 700;">RayRoPE</span>, a novel relative
         positional encoding mechanism designed for multi-view attention.
       </p>
     </div>
@@ -713,10 +720,10 @@
 <!-- Section 2: Properties -->
 <section class="section" id="properties">
   <div class="container is-max-desktop">
-    <h2 class="title is-4">What makes a good positional encoding in 3D?</h2>
+    <h2 class="title is-4">What makes a good positional encoding in multi-view?</h2>
     <div class="content has-text-justified" style="margin-bottom: 2rem;">
       <p>
-        We argue that an ideal positional encoding in 3D should satisfy <strong>four desirable properties</strong> illustrated below:
+        We argue that an ideal positional encoding for multi-view attention should satisfy <strong>four desirable properties</strong> illustrated below:
       </p>
     </div>
 
@@ -727,7 +734,7 @@
         <span>Figure: Four desirable properties (a) SE(3) Invariance, (b) Uniqueness, (c) Geometric Adaptiveness, (d) Multi-frequency</span>
       </div> -->
       
-      <img src="./assets/four-properties.png" alt="Four desirable properties for 3D positional encoding" style="width: 100%; border-radius: 8px;" />
+      <img src="./assets/intro_new.png" alt="Four desirable properties for 3D positional encoding" style="width: 100%; border-radius: 8px;" />
      
     </div>
 
@@ -772,7 +779,7 @@
 <!-- Section 3: Method-->
 <section class="section" id="method-rope">
   <div class="container is-max-desktop">
-    <h2 class="title is-4">Methods: RayRoPE Encodings</h2>
+    <h2 class="title is-4">Method: RayRoPE Encodings</h2>
     <div class="content has-text-justified">
     </div>
   </div>
@@ -876,7 +883,7 @@
     </div>
 
     <!-- Scene selector -->
-    <p class="has-text-centered is-size-7" style="margin-top: 1rem; margin-bottom: 0.5rem;"><strong>Select Scene (Reference Views):</strong></p>
+    <p class="has-text-centered is-size-12" style="margin-top: 2rem; margin-bottom: -1.5rem;"><strong>Select Scene (Input Views):</strong></p>
     <div class="scene-selector" id="scene-selector">
       <!-- Scene 0 -->
       <div class="scene-item active" data-scene="0" data-dataset="co3d_seen">
@@ -907,12 +914,12 @@
         <img src="./assets/nvs-visual/co3d_seen_3_ref3.png" alt="Scene 3 Ref 3" class="ref-image">
       </div>
       <!-- Scene 4 -->
-      <div class="scene-item" data-scene="4" data-dataset="co3d_seen">
+      <!-- <div class="scene-item" data-scene="4" data-dataset="co3d_seen">
         <img src="./assets/nvs-visual/co3d_seen_4_ref0.png" alt="Scene 4 Ref 0" class="ref-image">
         <img src="./assets/nvs-visual/co3d_seen_4_ref1.png" alt="Scene 4 Ref 1" class="ref-image">
         <img src="./assets/nvs-visual/co3d_seen_4_ref2.png" alt="Scene 4 Ref 2" class="ref-image">
         <img src="./assets/nvs-visual/co3d_seen_4_ref3.png" alt="Scene 4 Ref 3" class="ref-image">
-      </div>
+      </div> -->
       <!-- Scene 5 -->
       <div class="scene-item" data-scene="5" data-dataset="co3d_seen">
         <img src="./assets/nvs-visual/co3d_seen_5_ref0.png" alt="Scene 5 Ref 0" class="ref-image">
@@ -958,10 +965,10 @@
         <img src="./assets/nvs-visual/re10k_5_ref1.png" alt="re10k 5 Ref 1" class="ref-image">
       </div>
       <!-- re10k Scene 6 -->
-      <div class="scene-item" data-scene="6" data-dataset="re10k">
+      <!-- <div class="scene-item" data-scene="6" data-dataset="re10k">
         <img src="./assets/nvs-visual/re10k_6_ref0.png" alt="re10k 6 Ref 0" class="ref-image">
         <img src="./assets/nvs-visual/re10k_6_ref1.png" alt="re10k 6 Ref 1" class="ref-image">
-      </div>
+      </div> -->
     </div>
   </div>
 </section>
@@ -997,7 +1004,7 @@
     </div>
 
     <!-- Scene selector for stereo depth (below visuals) -->
-    <p class="has-text-centered is-size-7" style="margin-top: 1rem; margin-bottom: 0.5rem;"><strong>Select Scene (Input Views):</strong></p>
+    <p class="has-text-centered is-size-12" style="margin-top: 1.5rem; margin-bottom: -1.5rem;"><strong>Select Scene (Input Views):</strong></p>
     <div class="scene-selector" id="stereo-scene-selector">
       <div class="scene-item active" data-scene="0001">
         <img src="./assets/stereo/inputs/ref_0001.png" alt="Scene 0001 Ref" class="ref-image">
@@ -1031,16 +1038,22 @@
       </p>
     </div>
 
+    <!-- View selector for depth visualization -->
+    <div class="method-selector" id="depth-view-selector" style="margin-bottom: 1.5rem;">
+      <button data-view="visualization" class="active">Visualization</button>
+      <button data-view="accuracy">Accuracy vs. Uncertainty</button>
+    </div>
+
     <!-- Depth visualization container -->
-    <div class="content has-text-centered" style="margin-top: 2rem; margin-bottom: 1rem;">
+    <div class="content has-text-centered" style="margin-top: 1rem; margin-bottom: 1rem;">
       <div style="max-width: 1000px; margin: 0 auto;">
         <img id="depth-pred-view" src="./assets/depth_visual_final/101_11750_20715_v0.png" alt="Emergent Depth Visualization" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
-        <p style="margin-top: 0.5rem; font-weight: 600;">Emergent Depth Visualization</p>
+        <img id="depth-error-view" src="./assets/depth_error.png" alt="Depth Accuracy Plot" style="max-width: 450px; width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none; margin: 0 auto;" />
       </div>
     </div>
 
     <!-- Scene selector for emergent depth (below visuals) -->
-    <p class="has-text-centered is-size-7" style="margin-top: 1rem; margin-bottom: 0.5rem;"><strong>Select Scene (Input Views):</strong></p>
+    <p class="has-text-centered is-size-12" style="margin-top: 1.5rem; margin-bottom: -1.5rem;"><strong>Select Scene:</strong></p>
     <div class="scene-selector" id="emergent-depth-scene-selector">
       <div class="scene-item active" data-scene="101_11750_20715_v0">
         <img src="./assets/depth_visual_final/101_11750_20715_v0_input.png" alt="Scene 101" class="ref-image">
@@ -1062,7 +1075,7 @@
 </section>
 
 <!-- Section 6: (Optional) Interactive Attention Demo -->
-<section class="section" id="attention-demo">
+<!-- <section class="section" id="attention-demo">
   <div class="container is-max-desktop">
     <h2 class="title is-4">Interactive Attention Similarity Demo</h2>
     <div class="content has-text-justified">
@@ -1073,17 +1086,11 @@
     </div>
     
     <div class="attention-demo">
-      <!-- Left: 3D Camera Visualization -->
       <div>
         <h5 class="title is-6">Camera Positions (3D View)</h5>
-        <!-- Placeholder - remove when visualization is ready -->
         <div class="image-placeholder" style="aspect-ratio: 1; min-height: 300px;">
           <span>3D Visualization: Query & Key Cameras</span>
         </div>
-        <!-- Uncomment when visualization is ready:
-        <canvas id="camera-canvas" style="width: 100%; aspect-ratio: 1; border-radius: 8px;"></canvas>
-        -->
-        
         <div class="slider-group">
           <label>Translation X: <span id="tx-value">0</span></label>
           <input type="range" id="slider-tx" min="-5" max="5" value="0" step="0.1">
@@ -1102,20 +1109,15 @@
         </div>
       </div>
       
-      <!-- Right: Attention Heatmap -->
       <div>
         <h5 class="title is-6">Attention Similarity Heatmap (Key View)</h5>
-        <!-- Placeholder - remove when visualization is ready -->
         <div class="heatmap-placeholder">
           <span>Attention Heatmap Visualization</span>
         </div>
-        <!-- Uncomment when visualization is ready:
-        <canvas id="heatmap-canvas" style="width: 100%; aspect-ratio: 1; border-radius: 8px;"></canvas>
-        -->
       </div>
     </div>
   </div>
-</section>
+</section> -->
 
 <!-- Footer -->
 <footer class="footer" style="padding: 1.5rem 0;">
@@ -1651,7 +1653,36 @@ document.addEventListener('DOMContentLoaded', function() {
 // ========== Emergent Depth Scene Selection ==========
 document.addEventListener('DOMContentLoaded', function() {
   const depthPredImg = document.getElementById('depth-pred-view');
+  const depthErrorImg = document.getElementById('depth-error-view');
   const emergentDepthSceneSelector = document.getElementById('emergent-depth-scene-selector');
+  const depthViewSelector = document.getElementById('depth-view-selector');
+  const sceneSelectorLabel = emergentDepthSceneSelector ? emergentDepthSceneSelector.previousElementSibling : null;
+
+  let currentDepthView = 'visualization';
+  let currentDepthScene = '101_11750_20715_v0';
+
+  // View selector (Visualization vs Accuracy Plot)
+  if (depthViewSelector) {
+    document.querySelectorAll('#depth-view-selector button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#depth-view-selector button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentDepthView = btn.dataset.view;
+
+        if (currentDepthView === 'visualization') {
+          depthPredImg.style.display = 'block';
+          depthErrorImg.style.display = 'none';
+          if (emergentDepthSceneSelector) emergentDepthSceneSelector.style.display = 'flex';
+          if (sceneSelectorLabel) sceneSelectorLabel.style.display = 'block';
+        } else {
+          depthPredImg.style.display = 'none';
+          depthErrorImg.style.display = 'block';
+          if (emergentDepthSceneSelector) emergentDepthSceneSelector.style.display = 'none';
+          if (sceneSelectorLabel) sceneSelectorLabel.style.display = 'none';
+        }
+      });
+    });
+  }
 
   if (!emergentDepthSceneSelector) return;
 
@@ -1665,11 +1696,11 @@ document.addEventListener('DOMContentLoaded', function() {
       item.classList.add('active');
       
       // Get the scene identifier
-      const sceneId = item.dataset.scene;
+      currentDepthScene = item.dataset.scene;
       
       // Update depth visualization image
       if (depthPredImg) {
-        depthPredImg.src = `./assets/depth_visual_final/${sceneId}.png`;
+        depthPredImg.src = `./assets/depth_visual_final/${currentDepthScene}.png`;
       }
     });
   });
